@@ -12,9 +12,10 @@ The measurements are send to mqtt every 5 seconds, and to PV output every 5 minu
 - PIP
 
 ## Libraries
-- pip install paho-mqtt
-- pip install minimalmodbus
-- pip install schedule
+Use `pip install`
+- paho-mqtt
+- minimalmodbus
+- schedule
 
 # Connections
 Connecting the converter straight to the invertor.
