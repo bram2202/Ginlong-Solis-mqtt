@@ -24,35 +24,36 @@ mqtt_user = "<UserName>"
 mqtt_password = "<Password>"
 mqtt_client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
-pv_api_key = "<PvOutputApiKey>"
+# PVoutput settings
 pv_system_id = "<PvOutputSystemId>"
+nul_send = False
 
 # Read values from invertor with RS485
 def getValues():
     global Realtime_ACW, Realtime_DCV, Realtime_DCI, Realtime_ACV, Realtime_ACI, Realtime_ACF, Inverter_C, Alltime_KWH, Today_KWH, LastMeasurement
     # AC Watts
     Realtime_ACW = instrument.read_long(3004, functioncode=4, signed=False)
-    # DC volts 
+    # DC volts
     Realtime_DCV = instrument.read_register(3021, functioncode=4, signed=False) / 10
-    # DC current 
-    Realtime_DCI = instrument.read_register(3022, functioncode=4, signed=False) /10
-    # AC volts 
+    # DC current
+    Realtime_DCI = instrument.read_register(3022, functioncode=4, signed=False) / 10
+    # AC volts
     Realtime_ACV = instrument.read_register(3035, functioncode=4, signed=False) / 10
-    # AC current 
+    # AC current
     Realtime_ACI = instrument.read_register(3038, functioncode=4, signed=False) / 10
     # AC frequency
     Realtime_ACF = instrument.read_register(3042, functioncode=4, signed=False) / 100
-    # Inverter temperature 
+    # Inverter temperature
     Inverter_C = instrument.read_register(3041, functioncode=4, signed=True) / 10
-    # All time energy (kWh total) 
+    # All time energy (kWh total)
     Alltime_KWH = instrument.read_long(3008, functioncode=4, signed=False)
-    # Todays energy (kWh total) 
+    # Todays energy (kWh total)
     Today_KWH = instrument.read_register(3014, functioncode=4, signed=False) / 10
 
     LastMeasurement = datetime.now()
 
 # Print values for debugging
-def printValues():    
+def printValues():
     print("AC Watts: " + str(Realtime_ACW) + " W")
     print("DC Volt: " + str(Realtime_DCV) + " V")
     print("DC Current: " + str(Realtime_DCI) + " A")
@@ -85,16 +86,39 @@ def sendMqtt(client):
     client.disconnect()
     client.loop_stop()
 
+# Send 0 AC watt
+def sendNul(client):
+    client.loop_start()
+    client.publish("pv/ac", '{"W":"0"}', qos=0, retain=False)
+    client.disconnect()
+    client.loop_stop()
+
 # Call all functions for reading and sending
 def readAndSendData():
+    global nul_send
     try:
         getValues()
-        #printValues()
+        # printValues()
         client = connect_mqtt()
         sendMqtt(client)
+        # Reset after successfully sending data
+        nul_send = False
     except Exception as err:
         print("--ERROR: ")
         print(err)
+
+    # Check if LastMeasurement is set
+    if 'LastMeasurement' in globals():
+        duration = datetime.now() - LastMeasurement
+        minutes = divmod(duration.total_seconds(), 60)[0]
+
+        # if latest value is older than 1 min, send 0 value (invertur cutoff is 20w)
+        if minutes > 1 and not nul_send:
+            print("send nul")
+            client = connect_mqtt()
+            sendNul(client)
+            nul_send = True
+
 
 # Send measurements to PV output
 def sendPvOutput():
@@ -105,26 +129,26 @@ def sendPvOutput():
         return
 
     # If measurements are old, don't send (inverter off)
-    duration = datetime.now() - LastMeasurement 
-    minutes = divmod(duration.total_seconds(), 60)[0]  
+    duration = datetime.now() - LastMeasurement
+    minutes = divmod(duration.total_seconds(), 60)[0]
     if minutes > 4:
         return
-   
+
     # Create header for auth
     header = {
-        "X-Pvoutput-Apikey" : pv_api_key,
-        "X-Pvoutput-SystemId" : pv_system_id
+        "X-Pvoutput-Apikey": pv_api_key,
+        "X-Pvoutput-SystemId": pv_system_id
     }
 
     # Create body for PV output
     # https://pvoutput.org/help/api_specification.html#add-output-service
     body = {
-        "d" : now.strftime("%Y%m%d"),
-        "t" : now.strftime("%H:%M"),
-        "v1" : str(Today_KWH * 1000),
-        "v2" : str(Realtime_ACW),
-        "v5" : str(Inverter_C),
-        "v6" : str(Realtime_DCV)
+        "d": now.strftime("%Y%m%d"),
+        "t": now.strftime("%H:%M"),
+        "v1": str(Today_KWH * 1000),
+        "v2": str(Realtime_ACW),
+        "v5": str(Inverter_C),
+        "v6": str(Realtime_DCV)
     }
 
     # Post status
@@ -132,13 +156,14 @@ def sendPvOutput():
     session.headers.update(header)
     response = session.post("https://pvoutput.org/service/r2/addstatus.jsp", data=body)
 
+
 # Main function, called on start
 if __name__ == '__main__':
     print("-- Start script --")
 
     # Create scheduler
     schedule.every(5).seconds.do(readAndSendData)
-    schedule.every(5).minutes.do(sendPvOutput) # needs to be 5 minimum
+    schedule.every(5).minutes.do(sendPvOutput)  # needs to be 5 minimum
 
     while 1:
         schedule.run_pending()
