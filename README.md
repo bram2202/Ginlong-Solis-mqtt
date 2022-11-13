@@ -95,6 +95,10 @@ Check the status
 
 `systemctl status pv-script.service`
 
+Start service at boot
+
+`systemctl enable pv-script.service`
+
 
 # MQTT topics
 
