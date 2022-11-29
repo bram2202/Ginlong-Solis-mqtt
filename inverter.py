@@ -26,6 +26,7 @@ mqtt_client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 # PVoutput settings
 pv_system_id = "<PvOutputSystemId>"
+pv_api_key = "<PvOutputApiKey>"
 nul_send = False
 
 # Read values from invertor with RS485
