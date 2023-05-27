@@ -41,6 +41,8 @@ services:
       - PV_OUTPUT_SYSTEM_ID=<PVOutput system ID>
       - PV_OUTPUT_API_KEY=<PVOutput api key>
     restart: unless-stopped
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
 ```
 
 # Env vars
