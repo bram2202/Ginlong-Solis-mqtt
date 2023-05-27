@@ -75,7 +75,7 @@ def connect_mqtt():
     client = mqtt_client.Client(mqtt_client_id)
     client.username_pw_set(mqtt_user, mqtt_password)
     client.on_connect = on_connect
-    client.connect(mqtt_broker, mqtt_port)
+    client.connect(mqtt_broker, int(mqtt_port))
     return client
 
 # Send values to MQTT
