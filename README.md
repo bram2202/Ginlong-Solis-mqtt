@@ -1,21 +1,12 @@
 # Ginlong Solis mqtt/pv-output
 Getting Ginlong Solis invertor data and posting on MQTT / PV output.
 
-Using a python script on linux as a service to read the invertor via the RS485 port.
+Using a docker image as a service to read the invertor via the RS485 port.
 
 The measurements are send to mqtt every 5 seconds, and to PV output every 5 minutes.
 
 # Requirements
 - RS485 to USB converter.
-- Linux - Can be on a Respberry pi on or a full server.
-- Python 3
-- PIP
-
-## Libraries
-Use `pip install`
-- paho-mqtt
-- minimalmodbus
-- schedule
 
 # Connections
 Connecting the converter straight to the invertor.
@@ -33,7 +24,26 @@ The connector pins on the Solis invertor are tagged with a number, just take a c
 |3|A+|
 |4|B-|
 
-# Vars
+# Docker compose
+
+```yaml
+version: "2.1"
+services:
+  doods:
+    image: test-pv
+    container_name: ginlong-Solis-pvoutput
+    environment:
+      - USB_SERIAL=/dev/ttyUSB0
+      - BROKER_IP=<IP of mqtt broker>
+      - BROKER_PORT=1883
+      - BROKER_USER=<mqtt user>
+      - BROKER_PASSWORD=<mqtt password>
+      - PV_OUTPUT_SYSTEM_ID=<PVOutput system ID>
+      - PV_OUTPUT_API_KEY=<PVOutput api key>
+    restart: unless-stopped
+```
+
+# Env vars
 
 | vars | default | Description |
 |:---- |:----|:----|
@@ -43,62 +53,6 @@ The connector pins on the Solis invertor are tagged with a number, just take a c
 | mqtt_password | - | password for mqtt |
 | pv_api_key | - | Your PVOutput api key |
 | pv_system_id | -  | Your PVOutput system ID |
-
-
-# Testing
-
-After downloading the script and changing the values you can start it commandline the test it.
-`printValues()` is commented out, enable it.
-
-then run: `/usr/bin/python3 <script_location>/pv-inverter.py`
-
-The values should be displayed.
-
-The invertor needs to be running for this.
-
-
-# Service
-For running the script, i used a service to keep it running and starting at boot
-
-## Create new 
-`vim /lib/systemd/system/pv-script.service`
-
-And add: (change path of script folder)
-
-```
-[Unit]
-Description=PV output script
-After=multi-user.target
-Conflicts=getty@tty1.service
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/python3  <YOUR-FOLDER>/pv-inverter.py
-StandardInput=tty-force
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-## Start script
-
-Reload the daemon:
-
-`systemctl daemon-reload`
-
-Start the script
-
-`systemctl start pv-script.service`
-
-Check the status
-
-`systemctl status pv-script.service`
-
-Start service at boot
-
-`systemctl enable pv-script.service`
-
 
 # MQTT topics
 
