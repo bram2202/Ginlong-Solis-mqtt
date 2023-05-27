@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import time
 import schedule
 import requests
@@ -10,7 +11,7 @@ from datetime import datetime
 from paho.mqtt import client as mqtt_client
 
 # Setup minimalmodbus
-instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)
+instrument = minimalmodbus.Instrument(os.getenv("USB_SERIAL", "/dev/ttyUSB0"), 1)
 instrument.serial.baudrate = 9600
 instrument.serial.bytesize = 8
 instrument.serial.parity = serial.PARITY_NONE
@@ -18,15 +19,15 @@ instrument.serial.stopbits = 1
 instrument.serial.timeout = 3
 
 # MQTT settings
-mqtt_broker = "<BROKER_IP>"
-mqtt_port = 1883
-mqtt_user = "<UserName>"
-mqtt_password = "<Password>"
+mqtt_broker = os.getenv("BROKER_IP")
+mqtt_port = os.getenv("BROKER_PORT", 1883)
+mqtt_user = os.getenv("BROKER_USER")
+mqtt_password = os.getenv("BROKER_PASSWORD")
 mqtt_client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 # PVoutput settings
-pv_system_id = "<PvOutputSystemId>"
-pv_api_key = "<PvOutputApiKey>"
+pv_system_id = os.getenv("PV_OUTPUT_SYSTEM_ID")
+pv_api_key = os.getenv("PV_OUTPUT_API_KEY")
 nul_send = False
 
 # Read values from invertor with RS485
