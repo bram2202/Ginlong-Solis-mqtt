@@ -1,4 +1,6 @@
 # Ginlong Solis mqtt/pv-output
+[![Publish Docker image](https://github.com/bram2202/Ginlong-Solis-mqtt/actions/workflows/docker.yaml/badge.svg?branch=main)](https://github.com/bram2202/Ginlong-Solis-mqtt/actions/workflows/docker.yaml)
+
 Getting Ginlong Solis invertor data and posting on MQTT / PV output.
 
 Using a docker image as a service to read the invertor via the RS485 port.
