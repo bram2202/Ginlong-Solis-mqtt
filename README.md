@@ -29,9 +29,9 @@ The connector pins on the Solis invertor are tagged with a number, just take a c
 ```yaml
 version: "2.1"
 services:
-  doods:
-    image: test-pv
-    container_name: ginlong-Solis-pvoutput
+  ginlong:
+    image: bram2202/ginlong-solis-mqtt:latest
+    container_name: ginlong-solis-mqtt
     environment:
       - USB_SERIAL=/dev/ttyUSB0
       - BROKER_IP=<IP of mqtt broker>
@@ -44,6 +44,55 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 ```
+
+# As a service 
+
+Its posible to run the script in a service instead of a docker container.
+Download this repo and install the requirements.
+
+## Libraries
+Use `pip install`
+- paho-mqtt
+- minimalmodbus
+- schedule
+
+## Create new 
+`vim /lib/systemd/system/pv-script.service`
+
+And add: (change path of script folder)
+
+```
+[Unit]
+Description=PV output script
+After=multi-user.target
+Conflicts=getty@tty1.service
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3  <YOUR-FOLDER>/src/inverter.py
+StandardInput=tty-force
+Restart=always
+[Install]
+WantedBy=multi-user.target
+```
+
+## Start script
+
+Reload the daemon:
+
+`systemctl daemon-reload`
+
+Start the script
+
+`systemctl start pv-script.service`
+
+Check the status
+
+`systemctl status pv-script.service`
+
+Start service at boot
+
+`systemctl enable pv-script.service`
+
 
 # Env vars
 
