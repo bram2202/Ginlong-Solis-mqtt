@@ -30,9 +30,9 @@ jobs:
 
       - name: Set up Docker Buildx 
         uses: docker/setup-buildx-action@v2
-          with:
-            platforms: linux/amd64,linux/arm64,linux/arm/v7
-            use: true
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          use: true
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
