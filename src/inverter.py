@@ -142,22 +142,34 @@ def sendPvOutput():
         "X-Pvoutput-SystemId": pv_system_id
     }
 
-    # Create body for PV output
+    # Create URL for PV output
     # https://pvoutput.org/help/api_specification.html#add-output-service
-    body = {
-        "d": now.strftime("%Y%m%d"),
-        "t": now.strftime("%H:%M"),
-        "v1": str(Today_KWH * 1000),
-        "v2": str(Realtime_ACW),
-        "v5": str(Inverter_C),
-        "v6": str(Realtime_DCV)
-    }
+    date = now.strftime("%Y%m%d")
+    time = now.strftime("%H:%M")
+    v1 = str(Today_KWH * 1000)
+    v2 = str(Realtime_ACW)
+    v5 = str(Inverter_C)
+    v6 = str(Realtime_DCV)
+
+    # Format url string
+    pvUrl = (f"https://pvoutput.org/service/r2/addstatus.jsp?d={date}" 
+                    f"&t={time}"
+                    f"&v1={v1}"
+                    f"&v2={v2}"
+                    f"&v5={v5}"
+                    f"&v6={v6}"
+    )
 
     # Post status
     try:
         session = requests.Session()
         session.headers.update(header)
-        response = session.post("https://pvoutput.org/service/r2/addstatus.jsp", data=body)
+        response = session.post(pvUrl)
+
+        # raise ex if status code is not 200
+        if(response.status_code != 200):
+            raise Exception(response.content)
+        
     except Exception as err:
         print("--PV_ERROR: ")
         print(err)
