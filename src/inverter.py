@@ -106,7 +106,7 @@ def readAndSendData():
         # Reset after successfully sending data
         nul_send = False
     except Exception as err:
-        print("--ERROR: ")
+        print("--MQTT_ERROR: ")
         print(err)
 
     # Check if LastMeasurement is set
@@ -154,10 +154,13 @@ def sendPvOutput():
     }
 
     # Post status
-    session = requests.Session()
-    session.headers.update(header)
-    response = session.post("https://pvoutput.org/service/r2/addstatus.jsp", data=body)
-
+    try:
+        session = requests.Session()
+        session.headers.update(header)
+        response = session.post("https://pvoutput.org/service/r2/addstatus.jsp", data=body)
+    except Exception as err:
+        print("--PV_ERROR: ")
+        print(err)
 
 # Main function, called on start
 if __name__ == '__main__':
@@ -166,6 +169,9 @@ if __name__ == '__main__':
     # Create scheduler
     schedule.every(5).seconds.do(readAndSendData)
     schedule.every(5).minutes.do(sendPvOutput)  # needs to be 5 minimum
+
+    print("PV: " + pv_system_id + " - " + pv_api_key)
+    print("MQTT: " + mqtt_broker + ":" + mqtt_port)
 
     while 1:
         schedule.run_pending()
