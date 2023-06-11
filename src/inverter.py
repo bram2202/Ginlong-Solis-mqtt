@@ -170,8 +170,8 @@ if __name__ == '__main__':
     schedule.every(5).seconds.do(readAndSendData)
     schedule.every(5).minutes.do(sendPvOutput)  # needs to be 5 minimum
 
-    print("PV: " + pv_system_id + " - " + pv_api_key)
-    print("MQTT: " + mqtt_broker + ":" + mqtt_port)
+    print("PV: " + str(pv_system_id) + " : " + str(pv_api_key))
+    print("MQTT: " + str(mqtt_broker) + " : " + str(mqtt_port))
 
     while 1:
         schedule.run_pending()
