@@ -24,6 +24,7 @@ mqtt_port = os.getenv("BROKER_PORT", 1883)
 mqtt_user = os.getenv("BROKER_USER")
 mqtt_password = os.getenv("BROKER_PASSWORD")
 mqtt_client_id = f'python-mqtt-{random.randint(0, 1000)}'
+mqtt_topic = os.getenv("MQTT_TOPIC")
 
 # PVoutput settings
 pv_system_id = os.getenv("PV_OUTPUT_SYSTEM_ID")
@@ -81,17 +82,17 @@ def connect_mqtt():
 # Send values to MQTT
 def sendMqtt(client):
     client.loop_start()
-    client.publish("pv/ac", '{"W":"' + str(Realtime_ACW) + '", "V":"' + str(Realtime_ACV) + '", "C":"' + str(Realtime_ACI) + '", "F":"' + str(Realtime_ACF) + '"}', qos=0, retain=False)
-    client.publish("pv/dc", '{"V":"' + str(Realtime_DCV) + '", "C":"' + str(Realtime_DCI) + '"}', qos=0, retain=False)
-    client.publish("pv/gen", '{"D":"' + str(Today_KWH) + '", "T":"' + str(Alltime_KWH) + '"}', qos=0, retain=False)
-    client.publish("pv/temp", '{"T":"' + str(Inverter_C) + '"}', qos=0, retain=False)
+    client.publish(mqtt_topic+"/ac", '{"W":"' + str(Realtime_ACW) + '", "V":"' + str(Realtime_ACV) + '", "C":"' + str(Realtime_ACI) + '", "F":"' + str(Realtime_ACF) + '"}', qos=0, retain=False)
+    client.publish(mqtt_topic+"/dc", '{"V":"' + str(Realtime_DCV) + '", "C":"' + str(Realtime_DCI) + '"}', qos=0, retain=False)
+    client.publish(mqtt_topic+"/gen", '{"D":"' + str(Today_KWH) + '", "T":"' + str(Alltime_KWH) + '"}', qos=0, retain=False)
+    client.publish(mqtt_topic+"/temp", '{"T":"' + str(Inverter_C) + '"}', qos=0, retain=False)
     client.disconnect()
     client.loop_stop()
 
 # Send 0 AC watt
 def sendNul(client):
     client.loop_start()
-    client.publish("pv/ac", '{"W":"0"}', qos=0, retain=False)
+    client.publish(mqtt_topic+"/ac", '{"W":"0"}', qos=0, retain=False)
     client.disconnect()
     client.loop_stop()
 
