@@ -40,8 +40,12 @@ services:
       - BROKER_PORT=1883
       - BROKER_USER=<mqtt user>
       - BROKER_PASSWORD=<mqtt password>
+      - MQTT_TOPIC=<Topic_name>
       - PV_OUTPUT_SYSTEM_ID=<PVOutput system ID>
       - PV_OUTPUT_API_KEY=<PVOutput api key>
+    volumes:
+    - "/etc/timezone:/etc/timezone:ro"
+    - "/etc/localtime:/etc/localtime:ro"
     restart: unless-stopped
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
